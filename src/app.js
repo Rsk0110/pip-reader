@@ -240,6 +240,9 @@ const loop = () => {
     lastVideoTime = video.currentTime;
     const t = fingertip(video, now);
     feedTip(t && t.pointing ? t : null, now);
+  } else if (state.mode === 'page' && pointer) {
+    // a mouse that has stopped moving sends no events, so keep feeding its last position
+    feedTip(pointer, now);
   }
   draw(now);
   state.raf = requestAnimationFrame(loop);
@@ -310,11 +313,15 @@ const toSource = (e) => {
   const r = overlay.getBoundingClientRect();
   return { x: ((e.clientX - r.left) / r.width) * overlay.width, y: ((e.clientY - r.top) / r.height) * overlay.height };
 };
+let pointer = null;
 overlay.addEventListener('pointermove', (e) => {
   if (state.mode !== 'page') return;
-  feedTip(toSource(e), performance.now());
+  pointer = toSource(e);
 });
-overlay.addEventListener('pointerleave', () => state.mode === 'page' && feedTip(null, performance.now()));
+overlay.addEventListener('pointerleave', () => {
+  pointer = null;
+  if (state.mode === 'page') feedTip(null, performance.now());
+});
 overlay.addEventListener('click', (e) => {
   if (state.mode !== 'page') return;
   // a tap lands *on* the word, so look slightly below the word's middle
