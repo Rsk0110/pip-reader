@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- On-device by construction: the page may only load its own files. No uploads, no third-party calls. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self' data: blob:; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>Pip: point at a word, hear it</title>
+    <meta name="description" content="A reading buddy for real paper books. Point at a word you're stuck on and Pip says it, breaks it into syllables, and remembers it for practice. All AI runs on your device." />
+    <meta name="theme-color" content="#2b2d6e" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top-row">
+        <span class="brand"><img src="icon.svg" alt="" width="34" height="34" /> Pip</span>
+        <nav class="tabs" aria-label="Sections">
+          <button class="tab is-on" data-view="read" aria-current="page">Read</button>
+          <button class="tab" data-view="words">My words <span id="word-count" class="badge" hidden>0</span></button>
+          <button class="tab" data-view="about">How it works</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- READ -->
+      <section id="view-read" class="view">
+        <div id="start" class="card start">
+          <h1>Point at a word. Hear it.</h1>
+          <p class="lede">Hold a real book under your camera and rest your finger just <b>under</b> a word you’re stuck on. Pip reads it to you.</p>
+          <div class="start-actions">
+            <button id="use-camera" class="btn primary big">📷 Use my camera</button>
+            <button id="use-sample" class="btn big">📖 Try a sample page</button>
+            <label class="btn big file">🖼️ Use a photo of a page<input id="use-photo" type="file" accept="image/*" hidden /></label>
+          </div>
+          <p class="privacy">🔒 Pip’s AI runs on this device. The camera picture is never saved or sent anywhere.</p>
+        </div>
+
+        <div id="stage" class="stage" hidden>
+          <div class="frame" id="frame">
+            <video id="video" playsinline muted></video>
+            <canvas id="page" hidden></canvas>
+            <canvas id="overlay"></canvas>
+            <div id="status" class="status" role="status" aria-live="polite">Loading…</div>
+          </div>
+          <p id="hint" class="hint">Rest your fingertip just under a word and hold still.</p>
+          <div class="stage-actions">
+            <button id="stop" class="btn">◀ Back</button>
+            <button id="flip" class="btn" hidden>🔄 Switch camera</button>
+          </div>
+        </div>
+
+        <article id="card" class="card word-card" hidden aria-live="polite">
+          <p class="small">You pointed at</p>
+          <h2 id="w-word" class="w-word">word</h2>
+          <div id="w-syll" class="syll" aria-label="Syllables"></div>
+          <div class="w-actions">
+            <button id="w-say" class="btn primary">🔊 Say it</button>
+            <button id="w-slow" class="btn">🐢 Slowly</button>
+            <button id="w-parts" class="btn">👏 Sound it out</button>
+            <button id="w-spell" class="btn">🔤 Spell it</button>
+          </div>
+          <p id="w-saved" class="small saved">Saved to My words</p>
+        </article>
+      </section>
+
+      <!-- WORDS -->
+      <section id="view-words" class="view" hidden>
+        <div class="card">
+          <h1>My words</h1>
+          <p class="small">Words you asked Pip about. Practise them to make them yours.</p>
+          <ul id="words" class="words"></ul>
+          <p id="words-empty" class="small">No words yet. Point at a word while reading and it appears here.</p>
+          <div class="row">
+            <button id="practise" class="btn primary">Practise</button>
+            <button id="clear-words" class="btn ghost">Clear list</button>
+          </div>
+        </div>
+        <div id="flash" class="card flash" hidden>
+          <p class="small" id="flash-progress"></p>
+          <p class="flash-word" id="flash-word"></p>
+          <p class="small">Read it out loud, then check.</p>
+          <div class="row center">
+            <button id="flash-check" class="btn primary">🔊 Check</button>
+            <button id="flash-got" class="btn safe">I got it ✓</button>
+            <button id="flash-again" class="btn">Not yet</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section id="view-about" class="view prose" hidden>
+        <h1>How Pip works</h1>
+        <p>Reading apps usually ask you to photograph a page or swap the book for a screen. Pip keeps the real book in your hands and helps <b>one word at a time</b>, the way a parent sitting next to you would.</p>
+        <ol>
+          <li><b>Hand tracking:</b> an on-device AI model (MediaPipe Hand Landmarker) finds your index fingertip in every camera frame.</li>
+          <li><b>Pointing:</b> when your fingertip rests in one place for about half a second, Pip looks at the line of text just above it.</li>
+          <li><b>Reading:</b> an on-device text-recognition model (Tesseract) reads that small area, and Pip picks the word sitting right above your finger.</li>
+          <li><b>Helping:</b> it highlights the word, says it, breaks it into syllables to sound out, and saves it to <i>My words</i> for practice.</li>
+        </ol>
+        <h2>Private by design</h2>
+        <p>Both AI models are downloaded once with the app and run inside your browser. Camera frames stay in memory for a moment and are never stored or sent anywhere. The page’s security policy only lets it load its own files, so there is nowhere to send them. <i>My words</i> lives only on this device.</p>
+        <h2>Good to know</h2>
+        <ul>
+          <li>Works best with printed text, good light, and the camera held steady above the page.</li>
+          <li>Handwriting and fancy fonts are harder to read.</li>
+          <li>Syllables follow classroom rules and won’t be right for every word.</li>
+          <li>The voice comes from your device, so it differs between phones and computers.</li>
+        </ul>
+        <p class="small">Open source (MIT). Third-party: MediaPipe Tasks (Apache-2.0), Tesseract.js and Tesseract (Apache-2.0).</p>
+      </section>
+    </main>
+
+    <footer class="wrap foot"><p>Pip is a reading helper, not a teacher replacement. Built for SLAY HACKS 2026.</p></footer>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

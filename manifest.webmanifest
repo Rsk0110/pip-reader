@@ -1,0 +1,11 @@
+{
+  "name": "Pip: point at a word, hear it",
+  "short_name": "Pip",
+  "description": "A reading buddy for real paper books. On-device AI.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf6ec",
+  "theme_color": "#2b2d6e",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
